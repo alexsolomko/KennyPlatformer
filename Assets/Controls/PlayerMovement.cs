@@ -14,7 +14,7 @@ public class PlayerMovement : MonoBehaviour
     public float jumpPower = 10f;
 
     [Header("Double Jumping")]
-    public bool canDoubleJump = true; // Checkbox zur Steuerung des Springens im Inspector
+    public bool canDoubleJump = true;       // Checkbox zur Steuerung des Springens im Inspector
     public int maxJump = 2;
     private int jumpsRemaining;
 
@@ -39,7 +39,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Awake()
     {
-        rb = rb.GetComponent<Rigidbody2D>();
+        rb = gameObject.GetComponent<Rigidbody2D>();
     }
 
     // Start is called before the first frame update
@@ -96,6 +96,7 @@ public class PlayerMovement : MonoBehaviour
                 if (context.performed)
                 {
                     rb.velocity = new Vector2(rb.velocity.x, jumpPower);
+                    isJumpBuffered = true;
                 }
                 else if (context.canceled)
                 {
@@ -103,13 +104,6 @@ public class PlayerMovement : MonoBehaviour
                     jumpsRemaining--;
                 }
             }
-
-            // Check if a jump is buffered
-            if (context.started)
-            {
-                isJumpBuffered = true;
-            }
-
         }
         else
         {
@@ -118,17 +112,12 @@ public class PlayerMovement : MonoBehaviour
                 if (context.performed)
                 {
                     rb.velocity = new Vector2(rb.velocity.x, jumpPower);
+                    isJumpBuffered = true;
                 }
                 else if (context.canceled)
                 {
                     rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
                     jumpsRemaining--;
-                }
-
-                // Check if a jump is buffered
-                if (context.started)
-                {
-                    isJumpBuffered = true;
                 }
             }
         }
@@ -140,7 +129,7 @@ public class PlayerMovement : MonoBehaviour
         {
             jumpsRemaining = maxJump;
             coyotTimeCounter = coyotTime;
-            jumpBufferCounter = jumpBufferTime; // Reset the jump buffer
+            jumpBufferCounter = jumpBufferTime;
         }
         else
         {
