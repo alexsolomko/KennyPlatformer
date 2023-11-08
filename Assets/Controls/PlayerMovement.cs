@@ -63,7 +63,7 @@ public class PlayerMovement : MonoBehaviour
             currentSpeed = moveSpeed;
         }
 
-        rb.velocity = new Vector2(horizontalMovement * currentSpeed, rb.velocity.y);
+        rb.velocity = new Vector2(horizontalMovement * currentSpeed, rb.velocity.y);        // * Time.deltaTime
         GroundCheck();
         Gravity();
 
@@ -113,35 +113,39 @@ public class PlayerMovement : MonoBehaviour
     public void Jump(InputAction.CallbackContext context)
     {
         //Double Jumping Toggle
-        if (canDoubleJump)
+        if (canDoubleJump)      // Überprüfe die "canDoubleJump"-Variable
         {
-            if (jumpsRemaining > 0) // Überprüfe die "canDoubleJump"-Variable
+            if (coyotTimeCounter > 0f && jumpsRemaining > 0) 
             {
                 if (context.performed)
                 {
+                    //Hold down jump button = full height
                     rb.velocity = new Vector2(rb.velocity.x, jumpPower);
-                    isJumpBuffered = true;
                 }
                 else if (context.canceled)
                 {
+                    //Light tap of jump button = half the height
                     rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
                     jumpsRemaining--;
+                    isJumpBuffered = true;
                 }
             }
         }
         else
         {
-            if (jumpsRemaining == 2) // Überprüfe die "canDoubleJump"-Variable
+            if (coyotTimeCounter > 0f && jumpsRemaining == 2) 
             {
                 if (context.performed)
                 {
+                    //Hold down jump button = full height
                     rb.velocity = new Vector2(rb.velocity.x, jumpPower);
-                    isJumpBuffered = true;
                 }
                 else if (context.canceled)
                 {
+                    //Light tap of jump button = half the height
                     rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
                     jumpsRemaining--;
+                    isJumpBuffered = true;
                 }
             }
         }
