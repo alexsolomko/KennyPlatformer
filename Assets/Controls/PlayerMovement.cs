@@ -8,6 +8,9 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Movement")]
     public float moveSpeed = 5f;
+    public float runSpeed = 8f;
+    private bool isRunning = false;
+    float currentSpeed;
     private float horizontalMovement;
 
     [Header("Jumping")]
@@ -51,7 +54,16 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        rb.velocity = new Vector2(horizontalMovement * moveSpeed, rb.velocity.y);
+        if (isRunning)
+        {
+            currentSpeed = runSpeed;
+        }
+        else
+        {
+            currentSpeed = moveSpeed;
+        }
+
+        rb.velocity = new Vector2(horizontalMovement * currentSpeed, rb.velocity.y);
         GroundCheck();
         Gravity();
 
@@ -84,6 +96,18 @@ public class PlayerMovement : MonoBehaviour
     public void Move(InputAction.CallbackContext context)
     {
         horizontalMovement = context.ReadValue<Vector2>().x;
+    }
+
+    public void Run(InputAction.CallbackContext context)
+    {
+        if (context.started)
+        {
+            isRunning = true;
+        }
+        else if (context.canceled)
+        {
+            isRunning = false;
+        }
     }
 
     public void Jump(InputAction.CallbackContext context)
