@@ -6,6 +6,11 @@ public class PlayerMovement : MonoBehaviour
     public Rigidbody2D rb;
     private bool isFacingRight = true;
 
+    [Header("Toggle")]
+    public bool canDoubleJump = true;       // Checkbox zur Steuerung des Springens im Inspector
+    public bool canWallJump = true;
+    public bool canWallSlide = true;
+
     [Header("Movement")]
     public float moveSpeed = 5f;
     public float runSpeed = 8f;
@@ -17,18 +22,15 @@ public class PlayerMovement : MonoBehaviour
     public float jumpPower = 10f;
 
     [Header("Double Jumping")]
-    public bool canDoubleJump = true;       // Checkbox zur Steuerung des Springens im Inspector
     public int maxJump = 2;
     private int jumpsRemaining;
 
     [Header("Wall Jump")]
     private bool isWallJumping;
     private float wallJumpDirection;
-    private float wallJumpTime = 5f;
+    private float wallJumpTime = 0.4f;
     private float wallJumpTimer;
     public Vector2 wallJumpPower = new Vector2(5f, 10f);
-    public bool canWallJump = true;
-
 
     [Header("Jump Buffer Time")]
     public float jumpBufferTime = 1f;
@@ -41,19 +43,18 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("GroundCheck")]
     public Transform groundCheckPos;
-    public Vector2 groundCheckSize = new Vector2(0.5f, 0.05f);
+    public Vector2 groundCheckSize = new Vector2(0.55f, 0.08f);
     public LayerMask groundLayer;
     private bool isGrounded;
 
     [Header("WallCheck")]
     public Transform wallCheckPos;
-    public Vector2 wallCheckSize = new Vector2(0.5f, 0.05f);
+    public Vector2 wallCheckSize = new Vector2(0.08f, 0.75f);
     public LayerMask wallLayer;
 
     [Header("WallMovement")]
     public float wallSliderSpeed = 5f;
     private bool isWallSliding;
-    public bool canWallSlide = true;
 
     [Header("Gravity")]
     public float baseGravity = 2f;
@@ -74,9 +75,14 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(!isWallJumping)
+        GroundCheck();
+        ProcessGravity();
+        ProcessWallSlide();
+        ProcessWallJump();
+
+        if (!isWallJumping)
         {
-            rb.velocity = new Vector2(horizontalMovement * currentSpeed, rb.velocity.y);                // * Time.deltaTime
+            rb.velocity = new Vector2(horizontalMovement * currentSpeed, rb.velocity.y);      // * Time.deltaTime
             Flip();
         }
 
@@ -95,17 +101,15 @@ public class PlayerMovement : MonoBehaviour
             jumpBufferCounter = 0;
             isJumpBuffered = false;
         }
+        Debug.Log(currentSpeed);
     }
 
     private void FixedUpdate()
     {
-        GroundCheck();
-        Gravity();
-        ProcessWallSlide();
-        ProcessWallJump();
+
     }
 
-    private void Gravity()
+    private void ProcessGravity()
     {
         if (rb.velocity.y < 0)
         {
@@ -120,8 +124,8 @@ public class PlayerMovement : MonoBehaviour
 
     private void ProcessWallSlide()
     {
-        //Not grounded & On a Wall & movement != 0
-        if (!isGrounded & WallCheck() & horizontalMovement != 0)
+        //Not grounded & On a Wall & movement != 0 & canWallSlide
+        if (!isGrounded & WallCheck() & horizontalMovement != 0f & canWallSlide)
         {
             isWallSliding = true;
             rb.velocity = new Vector2(rb.velocity.x, Mathf.Max(rb.velocity.y, -wallSliderSpeed)); //Caps fall rate
@@ -134,10 +138,10 @@ public class PlayerMovement : MonoBehaviour
 
     private void ProcessWallJump()
     {
-        if ( isWallSliding )
+        if (isWallSliding)
         {
             isWallJumping = false;
-            wallJumpDirection = -transform.position.x;
+            wallJumpDirection = -transform.localScale.x;
             wallJumpTimer = wallJumpTime;
 
             CancelInvoke(nameof(CancelWallJump));
@@ -191,22 +195,25 @@ public class PlayerMovement : MonoBehaviour
                 }
             }
             //Wall jump
-            if (context.performed && wallJumpTimer > 0f)
+            if (canWallJump)
             {
-                isWallJumping = true;
-                rb.velocity = new Vector2(wallJumpDirection * wallJumpPower.x, wallJumpPower.y);        //Jump away from wall
-                wallJumpTimer = 0;
-
-                //Force flip
-                if(transform.localScale.x != wallJumpDirection)
+                if (context.performed && wallJumpTimer > 0f)
                 {
-                    isFacingRight = !isFacingRight;
-                    Vector2 ls = transform.localScale;
-                    ls.x *= -1f;
-                    transform.localScale = ls;
-                }
+                    isWallJumping = true;
+                    rb.velocity = new Vector2(wallJumpDirection * wallJumpPower.x, wallJumpPower.y);        //Jump away from wall
+                    wallJumpTimer = 0;
 
-                Invoke(nameof(CancelWallJump), wallJumpTime + 0.1f);        //Wall Jump = 0.5f -- Jump again = 0.6f
+                    //Force flip
+                    if (transform.localScale.x != wallJumpDirection)
+                    {
+                        isFacingRight = !isFacingRight;
+                        Vector2 ls = transform.localScale;
+                        ls.x *= -1f;
+                        transform.localScale = ls;
+                    }
+
+                    Invoke(nameof(CancelWallJump), wallJumpTime + 0.1f);        //Wall Jump = 0.5f -- Jump again = 0.6f
+                }
             }
         }
         else
@@ -224,6 +231,28 @@ public class PlayerMovement : MonoBehaviour
                     rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
                     jumpsRemaining--;
                     isJumpBuffered = true;
+                }
+            }
+
+            //Wall jump
+            if (canWallJump)
+            {
+                if (context.performed && wallJumpTimer > 0f)
+                {
+                    isWallJumping = true;
+                    rb.velocity = new Vector2(wallJumpDirection * wallJumpPower.x, wallJumpPower.y);        //Jump away from wall
+                    wallJumpTimer = 0;
+
+                    //Force flip
+                    if (transform.localScale.x != wallJumpDirection)
+                    {
+                        isFacingRight = !isFacingRight;
+                        Vector2 ls = transform.localScale;
+                        ls.x *= -1f;
+                        transform.localScale = ls;
+                    }
+
+                    Invoke(nameof(CancelWallJump), wallJumpTime + 0.1f);        //Wall Jump = 0.5f -- Jump again = 0.6f
                 }
             }
         }
