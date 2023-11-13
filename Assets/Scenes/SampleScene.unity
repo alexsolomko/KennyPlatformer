@@ -5677,8 +5677,8 @@ MonoBehaviour:
   canDoubleJump: 1
   canWallJump: 1
   canWallSlide: 1
-  moveSpeed: 5
-  runSpeed: 8
+  moveSpeed: 150
+  runSpeed: 240
   jumpPower: 10
   maxJump: 2
   wallJumpPower: {x: 5, y: 10}

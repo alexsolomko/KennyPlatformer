@@ -14,8 +14,8 @@ public class PlayerMovement : MonoBehaviour
     public bool canWallSlide = true;
 
     [Header("Movement")]
-    public float moveSpeed = 5f;
-    public float runSpeed = 8f;
+    public float moveSpeed = 150f;
+    public float runSpeed = 240f;
     private bool isRunning = false;
     private float currentSpeed;
     private float horizontalMovement;
@@ -70,21 +70,6 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        GroundCheck();
-        ProcessGravity();
-        ProcessWallSlide();
-        ProcessWallJump();
-
-        if (!isWallJumping)
-        {
-            rb.velocity = new Vector2(horizontalMovement * currentSpeed, rb.velocity.y);      // * Time.deltaTime
-            Flip();
-        }
-
-        animator.SetFloat("yVelocity", rb.velocity.y);
-        animator.SetFloat("magnitude", rb.velocity.magnitude);
-        animator.SetBool("isWallSliding", isWallSliding);
-
         if (isRunning)
         {
             currentSpeed = runSpeed;
@@ -104,6 +89,21 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
+        GroundCheck();
+        ProcessGravity();
+        ProcessWallSlide();
+        ProcessWallJump();
+
+        if (!isWallJumping)
+        {
+            rb.velocity = new Vector2(horizontalMovement * currentSpeed * Time.fixedDeltaTime, rb.velocity.y);
+            Flip();
+        }
+
+        animator.SetFloat("yVelocity", rb.velocity.y);
+        animator.SetFloat("magnitude", rb.velocity.magnitude);
+        animator.SetBool("isWallSliding", isWallSliding);
+
 
     }
 
@@ -181,7 +181,7 @@ public class PlayerMovement : MonoBehaviour
         //Double Jumping Toggle
         if (canDoubleJump)      // Überprüfe die "canDoubleJump"-Variable
         {
-            if (coyotTimeCounter > 0f && jumpsRemaining > 0)
+            if (jumpsRemaining > 0) //coyotTimeCounter > 0f && 
             {
                 if (context.performed)
                 {
@@ -227,7 +227,7 @@ public class PlayerMovement : MonoBehaviour
         }
         else
         {
-            if (coyotTimeCounter > 0f && jumpsRemaining == 2)
+            if (jumpsRemaining == 2) //coyotTimeCounter > 0f && 
             {
                 if (context.performed)
                 {
