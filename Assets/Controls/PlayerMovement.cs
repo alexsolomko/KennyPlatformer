@@ -4,6 +4,8 @@ using UnityEngine.InputSystem;
 public class PlayerMovement : MonoBehaviour
 {
     public Rigidbody2D rb;
+    public Animator animator;
+    public ParticleSystem smokeFX;
     private bool isFacingRight = true;
 
     [Header("Toggle")]
@@ -15,7 +17,7 @@ public class PlayerMovement : MonoBehaviour
     public float moveSpeed = 5f;
     public float runSpeed = 8f;
     private bool isRunning = false;
-    float currentSpeed;
+    private float currentSpeed;
     private float horizontalMovement;
 
     [Header("Jumping")]
@@ -66,13 +68,6 @@ public class PlayerMovement : MonoBehaviour
         rb = gameObject.GetComponent<Rigidbody2D>();
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-
-    }
-
-    // Update is called once per frame
     void Update()
     {
         GroundCheck();
@@ -85,6 +80,10 @@ public class PlayerMovement : MonoBehaviour
             rb.velocity = new Vector2(horizontalMovement * currentSpeed, rb.velocity.y);      // * Time.deltaTime
             Flip();
         }
+
+        animator.SetFloat("yVelocity", rb.velocity.y);
+        animator.SetFloat("magnitude", rb.velocity.magnitude);
+        animator.SetBool("isWallSliding", isWallSliding);
 
         if (isRunning)
         {
@@ -101,7 +100,6 @@ public class PlayerMovement : MonoBehaviour
             jumpBufferCounter = 0;
             isJumpBuffered = false;
         }
-        Debug.Log(currentSpeed);
     }
 
     private void FixedUpdate()
@@ -138,7 +136,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void ProcessWallJump()
     {
-        if (isWallSliding)
+        if (WallCheck())    //isWallSliding
         {
             isWallJumping = false;
             wallJumpDirection = -transform.localScale.x;
@@ -148,7 +146,7 @@ public class PlayerMovement : MonoBehaviour
         }
         else if (wallJumpTimer > 0f)
         {
-            wallJumpTimer -=Time.deltaTime;
+            wallJumpTimer -= Time.deltaTime;
         }
     }
 
@@ -167,6 +165,10 @@ public class PlayerMovement : MonoBehaviour
         if (context.started)
         {
             isRunning = true;
+            if (rb.velocity.y == 0f)
+            {
+                smokeFX.Play();
+            }
         }
         else if (context.canceled)
         {
@@ -185,6 +187,7 @@ public class PlayerMovement : MonoBehaviour
                 {
                     //Hold down jump button = full height
                     rb.velocity = new Vector2(rb.velocity.x, jumpPower);
+                    JumpFX();
                 }
                 else if (context.canceled)
                 {
@@ -192,6 +195,7 @@ public class PlayerMovement : MonoBehaviour
                     rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
                     jumpsRemaining--;
                     isJumpBuffered = true;
+                    JumpFX();
                 }
             }
             //Wall jump
@@ -202,6 +206,7 @@ public class PlayerMovement : MonoBehaviour
                     isWallJumping = true;
                     rb.velocity = new Vector2(wallJumpDirection * wallJumpPower.x, wallJumpPower.y);        //Jump away from wall
                     wallJumpTimer = 0;
+                    JumpFX();
 
                     //Force flip
                     if (transform.localScale.x != wallJumpDirection)
@@ -210,6 +215,10 @@ public class PlayerMovement : MonoBehaviour
                         Vector2 ls = transform.localScale;
                         ls.x *= -1f;
                         transform.localScale = ls;
+                        if (rb.velocity.y == 0f)
+                        {
+                            smokeFX.Play();
+                        }
                     }
 
                     Invoke(nameof(CancelWallJump), wallJumpTime + 0.1f);        //Wall Jump = 0.5f -- Jump again = 0.6f
@@ -224,6 +233,7 @@ public class PlayerMovement : MonoBehaviour
                 {
                     //Hold down jump button = full height
                     rb.velocity = new Vector2(rb.velocity.x, jumpPower);
+                    JumpFX();
                 }
                 else if (context.canceled)
                 {
@@ -231,6 +241,7 @@ public class PlayerMovement : MonoBehaviour
                     rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
                     jumpsRemaining--;
                     isJumpBuffered = true;
+                    JumpFX();
                 }
             }
 
@@ -242,6 +253,7 @@ public class PlayerMovement : MonoBehaviour
                     isWallJumping = true;
                     rb.velocity = new Vector2(wallJumpDirection * wallJumpPower.x, wallJumpPower.y);        //Jump away from wall
                     wallJumpTimer = 0;
+                    JumpFX();
 
                     //Force flip
                     if (transform.localScale.x != wallJumpDirection)
@@ -250,12 +262,23 @@ public class PlayerMovement : MonoBehaviour
                         Vector2 ls = transform.localScale;
                         ls.x *= -1f;
                         transform.localScale = ls;
+
+                        if (rb.velocity.y == 0f)
+                        {
+                            smokeFX.Play();
+                        }
                     }
 
                     Invoke(nameof(CancelWallJump), wallJumpTime + 0.1f);        //Wall Jump = 0.5f -- Jump again = 0.6f
                 }
             }
         }
+    }
+
+    private void JumpFX()
+    {
+        animator.SetTrigger("jump");
+        smokeFX.Play();
     }
 
     private void GroundCheck()
@@ -297,6 +320,11 @@ public class PlayerMovement : MonoBehaviour
             Vector2 ls = transform.localScale;
             ls.x *= -1f;
             transform.localScale = ls;
+
+            if (rb.velocity.y == 0f)
+            {
+                smokeFX.Play();
+            }
         }
     }
 }
