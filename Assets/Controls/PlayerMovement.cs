@@ -9,7 +9,7 @@ public class PlayerMovement : MonoBehaviour
     private bool isFacingRight = true;
 
     [Header("Toggle")]
-    public bool canDoubleJump = true;       // Checkbox zur Steuerung des Springens im Inspector
+    public bool canDoubleJump = true;
     public bool canWallJump = true;
     public bool canWallSlide = true;
 
@@ -287,8 +287,9 @@ public class PlayerMovement : MonoBehaviour
         {
             jumpsRemaining = maxJump;
             coyotTimeCounter = coyotTime;
-            jumpBufferCounter = jumpBufferTime;
+            //jumpBufferCounter = jumpBufferTime;
             isGrounded = true;
+            Debug.Log(groundLayer);
         }
         else
         {
