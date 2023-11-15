@@ -9,22 +9,36 @@ public class PlayerMovement : MonoBehaviour
     private bool isFacingRight = true;
 
     [Header("Toggle")]
-    public bool canDoubleJump = true;
-    public bool canWallJump = true;
-    public bool canWallSlide = true;
+    [SerializeField] private bool canDoubleJump = true;
+    [SerializeField] private bool canWallJump = true;
+    [SerializeField] private bool canWallSlide = true;
 
     [Header("Movement")]
-    public float moveSpeed = 150f;
-    public float runSpeed = 240f;
+    [SerializeField]
+    [Range(50f, 250f)]
+    [Tooltip("Default 150")]
+    private float moveSpeed = 150f;
+
+    [SerializeField]
+    [Range(140f, 340f)]
+    [Tooltip("Default 240")]
+    private float runSpeed = 240f;
+
     private bool isRunning = false;
     private float currentSpeed;
     private float horizontalMovement;
 
     [Header("Jumping")]
+    [SerializeField]
+    [Range(0f, 20f)]
+    [Tooltip("Default 10")]
     public float jumpPower = 10f;
 
     [Header("Double Jumping")]
-    public int maxJump = 2;
+    [SerializeField]
+    [Range(1f, 5f)]
+    [Tooltip("Default 2")] 
+    private int maxJump = 2;
     private int jumpsRemaining;
 
     [Header("Wall Jump")]
@@ -70,6 +84,13 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        GroundCheck();
+        ProcessGravity();
+        ProcessWallSlide();
+        ProcessWallJump();
+
+
+
         if (isRunning)
         {
             currentSpeed = runSpeed;
@@ -89,29 +110,22 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        GroundCheck();
-        ProcessGravity();
-        ProcessWallSlide();
-        ProcessWallJump();
-
         if (!isWallJumping)
         {
-            rb.velocity = new Vector2(horizontalMovement * currentSpeed * Time.fixedDeltaTime, rb.velocity.y);
+            rb.velocity = new Vector2(horizontalMovement * currentSpeed * Time.fixedDeltaTime, rb.velocity.y); // * Time.deltaTime
             Flip();
         }
 
         animator.SetFloat("yVelocity", rb.velocity.y);
         animator.SetFloat("magnitude", rb.velocity.magnitude);
         animator.SetBool("isWallSliding", isWallSliding);
-
-
     }
 
     private void ProcessGravity()
     {
         if (rb.velocity.y < 0)
         {
-            rb.gravityScale = baseGravity * fallSpeedMultiplier;                                     //Fall increasingly faster
+            rb.gravityScale = baseGravity * fallSpeedMultiplier;    //Fall increasingly faster
             rb.velocity = new Vector2(rb.velocity.x, Mathf.Max(rb.velocity.y, -maxFallSpeed));
         }
         else
@@ -165,7 +179,8 @@ public class PlayerMovement : MonoBehaviour
         if (context.started)
         {
             isRunning = true;
-            if (rb.velocity.y == 0f)
+
+            if (rb.velocity.y > 0f)
             {
                 smokeFX.Play();
             }
